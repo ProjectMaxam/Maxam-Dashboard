@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IQ-167 System V4.0 SECURE | Ultimate Demo Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- PDF Export Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8); }
+    }
+    .pulse-glow { animation: pulse-glow 2s infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    .float { animation: float 3s ease-in-out infinite; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-in { animation: slideIn 0.5s ease-out; }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .slide-in-left { animation: slideInLeft 0.6s ease-out; }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .slide-in-right { animation: slideInRight 0.6s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .fade-in { animation: fadeIn 0.8s ease-out; }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .ticker { animation: ticker 30s linear infinite; }
+    @keyframes flowPulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+    .flow-pulse { animation: flowPulse 2s ease-in-out infinite; }
+    @keyframes dataFlow {
+      0% { stroke-dashoffset: 20; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .data-flow { animation: dataFlow 1s linear infinite; }
+    @keyframes signalGlow {
+      0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+      50% { filter: drop-shadow(0 0 8px currentColor); }
+    }
+    .signal-glow { animation: signalGlow 1.5s ease-in-out infinite; }
+    @keyframes countUp {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .count-up { animation: countUp 0.5s ease-out; }
+    @keyframes progressFill {
+      from { width: 0; }
+    }
+    .progress-fill { animation: progressFill 1s ease-out; }
+    @keyframes spotlight {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3), 0 0 0 8px rgba(99, 102, 241, 0.1); }
+      50% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.5), 0 0 0 12px rgba(99, 102, 241, 0.2); }
+    }
+    .spotlight { animation: spotlight 1.5s ease-in-out infinite; }
+    .gradient-text {
+      background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #A855F7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #1E293B; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748B; }
+    .tour-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 1000;
+      backdrop-filter: blur(2px);
+    }
+    .tour-highlight {
+      position: relative;
+      z-index: 1001;
+      border-radius: 12px;
+    }
+    .tour-tooltip {
+      position: fixed;
+      z-index: 1002;
+      max-width: 400px;
+      animation: slideIn 0.3s ease-out;
+    }
+    .presentation-mode {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: linear-gradient(135deg, #0B0F19 0%, #1E293B 100%);
+    }
+    .pdf-export-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @media print {
+      body { background: white !important; }
+      .no-print { display: none !important; }
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slate: { 950: '#0B0F19' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-950">
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useMemo, useRef } = React;
+    const { 
+      LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, 
+      Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
+      ComposedChart, Legend, ReferenceLine, ReferenceArea
+    } = Recharts;
+
+    // Icon component
+    const Icon = ({ name, className = "w-5 h-5", style = {} }) => {
+      const ref = React.useRef(null);
+      useEffect(() => {
+        if (ref.current && lucide.icons[name]) {
+          ref.current.innerHTML = '';
+          const icon = lucide.createElement(lucide.icons[name]);
+          ref.current.appendChild(icon);
+        }
+      }, [name]);
+      return <span ref={ref} className={`inline-flex ${className}`} style={style} />;
+    };
+
+    // ========================================================================
+    // PDF EXPORT COMPONENT
+    // ========================================================================
+    const PDFExportModal = ({ isOpen, onClose, onExport }) => {
+      const [isExporting, setIsExporting] = useState(false);
+      const [progress, setProgress] = useState(0);
+      const [selectedPages, setSelectedPages] = useState({
+        summary: true,
+        performance: true,
+        agents: true,
+        risk: true,
+        allocation: true
+      });
+
+      const handleExport = async () => {
+        setIsExporting(true);
+        setProgress(0);
+        
+        try {
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF('landscape', 'mm', 'a4');
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          
+          // Helper function to add page
+          const addPage = (title, content, pageNum, totalPages) => {
+            if (pageNum > 1) pdf.addPage();
+            
+            // Header
+            pdf.setFillColor(15, 23, 42);
+            pdf.rect(0, 0, pageWidth, 25, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(18);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('IQ-167 System V4.0 SECURE', 15, 15);
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 30, 15);
+            
+            // Title
+            pdf.setTextColor(99, 102, 241);
+            pdf.setFontSize(24);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(title, 15, 45);
+            
+            // Content
+            pdf.setTextColor(51, 65, 85);
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'normal');
+            
+            let yPos = 60;
+            content.forEach(item => {
+              if (item.type === 'metric') {
+                pdf.setFontSize(10);
+                pdf.setTextColor(100, 116, 139);
+                pdf.text(item.label, item.x || 15, yPos);
+                pdf.setFontSize(16);
+                pdf.setTextColor(item.color || [34, 197, 94]);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(item.value, item.x || 15, yPos + 8);
+                pdf.setFont('helvetica', 'normal');
+              } else if (item.type === 'text') {
+                pdf.setFontSize(item.size || 12);
+                pdf.setTextColor(...(item.color || [51, 65, 85]));
+                pdf.text(item.text, item.x || 15, yPos);
+              } else if (item.type === 'line') {
+                pdf.setDrawColor(203, 213, 225);
+                pdf.line(15, yPos, pageWidth - 15, yPos);
+              }
+              yPos += item.height || 15;
+            });
+            
+            // Footer
+            pdf.setFillColor(30, 41, 59);
+            pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+            pdf.setTextColor(148, 163, 184);
+            pdf.setFontSize(8);
+            pdf.text('© 2024 Maxam Capital Management LLC | CONFIDENTIAL', 15, pageHeight - 6);
+            pdf.text(new Date().toLocaleDateString(), pageWidth - 40, pageHeight - 6);
+          };
+
+          const selectedCount = Object.values(selectedPages).filter(Boolean).length;
+          let currentPage = 0;
+
+          // Page 1: Executive Summary
+          if (selectedPages.summary) {
+            currentPage++;
+            setProgress(Math.round((currentPage / selectedCount) * 100));
+            addPage('Executive Summary', [
+              { type: 'text', text: 'Multi-Asset Algorithmic Trading Platform', size: 14, color: [148, 163, 184] },
+              { type: 'text', text: '', height: 10 },
+              { type: 'metric', label: 'Portfolio Value', value: '$253.36M', x: 15 },
+              { type: 'metric', label: '10-Year Return', value: '+4,967%', x: 80, color: [34, 197, 94] },
+              { type: 'metric', label: 'CAGR', value: '48.1%', x: 145, color: [99, 102, 241] },
+              { type: 'metric', label: 'Sharpe Ratio', value: '2.34', x: 210, color: [234, 179, 8] },
+              { type: 'text', text: '', height: 20 },
+              { type: 'line' },
+              { type: 'text', text: '', height: 10 },
+              { type: 'text', text: 'Key Highlights:', size: 14, color: [99, 102, 241] },
+              { type: 'text', text: '• 7 Specialized AI Agents with ensemble decision-making' },
+              { type: 'text', text: '• 16+ Asset Classes spanning crypto, TradFi, and derivatives' },
+              { type: 'text', text: '• 70% reduction in max drawdown vs crypto-only strategies' },
+              { type: 'text', text: '• Positive returns during 2028 and 2032 bear markets' },
+              { type: 'text', text: '• Sub-10ms execution latency across 50+ trading venues' },
+            ], currentPage, selectedCount);
+          }
+
+          // Page 2: Performance
+          if (selectedPages.performance) {
+            currentPage++;
+            setProgress(Math.round((currentPage / selectedCount) * 100));
+            addPage('10-Year Performance Analysis', [
+              { type: 'text', text: 'Projected Returns: January 2026 - December 2035', size: 12, color: [148, 163, 184] },
+              { type: 'text', text: '', height: 15 },
+              { type: 'metric', label: 'Starting Capital', value: '$5,000,000', x: 15, color: [148, 163, 184] },
+              { type: 'metric', label: 'Ending Value', value: '$253,360,000', x: 80, color: [34, 197, 94] },
+              { type: 'metric', label: 'Total Profit', value: '$248,360,000', x: 160, color: [34, 197, 94] },
+              { type: 'text', text: '', height: 25 },
+              { type: 'line' },
+              { type: 'text', text: '', height: 10 },
+              { type: 'text', text: 'Year-by-Year Performance:', size: 14, color: [99, 102, 241] },
+              { type: 'text', text: '2026: +74.5%  |  2027: +23.2%  |  2028: +9.7% (Bear)  |  2029: +78.3%  |  2030: +107.4%' },
+              { type: 'text', text: '2031: +20.7%  |  2032: +11.9% (Bear)  |  2033: +67.8%  |  2034: +95.3%  |  2035: +31.4%' },
+              { type: 'text', text: '', height: 15 },
+              { type: 'text', text: 'Comparison vs Benchmarks:', size: 14, color: [99, 102, 241] },
+              { type: 'text', text: 'IQ-167: +4,967%  |  Crypto-Only: +5,086%  |  BTC Hold: +804%  |  S&P 500: +156%' },
+            ], currentPage, selectedCount);
+          }
+
+          // Page 3: AI Agents
+          if (selectedPages.agents) {
+            currentPage++;
+            setProgress(Math.round((currentPage / selectedCount) * 100));
+            addPage('AI Agent Architecture', [
+              { type: 'text', text: '7 Specialized Agents with Ensemble Decision-Making', size: 12, color: [148, 163, 184] },
+              { type: 'text', text: '', height: 15 },
+              { type: 'text', text: 'Sentiment Agent - NLP/LLM analysis of social media, news, on-chain data' },
+              { type: 'text', text: 'Fundamental Agent - Valuation models, TVL analysis, earnings data' },
+              { type: 'text', text: 'Technical Agent - 50+ indicators, ML pattern recognition, multi-timeframe' },
+              { type: 'text', text: 'Liquidity Agent - Order book analysis, smart order routing, impact modeling' },
+              { type: 'text', text: 'Portfolio Agent - Kelly criterion, mean-variance optimization, rebalancing' },
+              { type: 'text', text: 'Risk Agent - VaR/CVaR, position limits, smart contract risk assessment' },
+              { type: 'text', text: 'Master Integration Agent - Decision synthesis, conflict resolution' },
+              { type: 'text', text: '', height: 15 },
+              { type: 'line' },
+              { type: 'text', text: '', height: 10 },
+              { type: 'metric', label: 'Decision Latency', value: '< 5ms', x: 15, color: [99, 102, 241] },
+              { type: 'metric', label: 'Events/Second', value: '1M+', x: 80, color: [139, 92, 246] },
+              { type: 'metric', label: 'System Uptime', value: '99.99%', x: 145, color: [34, 197, 94] },
+            ], currentPage, selectedCount);
+          }
+
+          // Page 4: Risk Management
+          if (selectedPages.risk) {
+            currentPage++;
+            setProgress(Math.round((currentPage / selectedCount) * 100));
+            addPage('Risk Management', [
+              { type: 'text', text: 'Institutional-Grade Risk Controls', size: 12, color: [148, 163, 184] },
+              { type: 'text', text: '', height: 15 },
+              { type: 'metric', label: 'Max Drawdown', value: '-18.7%', x: 15, color: [34, 197, 94] },
+              { type: 'metric', label: 'Crypto-Only DD', value: '-62.4%', x: 80, color: [239, 68, 68] },
+              { type: 'metric', label: 'Improvement', value: '70%', x: 145, color: [34, 197, 94] },
+              { type: 'text', text: '', height: 25 },
+              { type: 'text', text: 'Risk Metrics:', size: 14, color: [99, 102, 241] },
+              { type: 'text', text: 'VaR (95%): 4.2%  |  CVaR (95%): 6.1%  |  Volatility: 24.3%' },
+              { type: 'text', text: 'Sharpe: 2.34  |  Sortino: 3.12  |  Calmar: 2.57' },
+              { type: 'text', text: '', height: 15 },
+              { type: 'text', text: 'Bear Market Performance:', size: 14, color: [99, 102, 241] },
+              { type: 'text', text: '2028: IQ-167 +9.7% vs BTC -48.2%  |  2032: IQ-167 +11.9% vs BTC -52.1%' },
+            ], currentPage, selectedCount);
+          }
+
+          // Page 5: Asset Allocation
+          if (selectedPages.allocation) {
+            currentPage++;
+            setProgress(Math.round((currentPage / selectedCount) * 100));
+            addPage('Dynamic Asset Allocation', [
+              { type: 'text', text: 'Current Allocation (Bull Market Phase)', size: 12, color: [148, 163, 184] },
+              { type: 'text', text: '', height: 15 },
+              { type: 'text', text: 'Cryptocurrency (79%):', size: 14, color: [139, 92, 246] },
+              { type: 'text', text: 'SOL: 38%  |  BTC: 14%  |  ETH: 11%  |  Others: 16%' },
+              { type: 'text', text: '', height: 10 },
+              { type: 'text', text: 'Traditional Finance (19%):', size: 14, color: [59, 130, 246] },
+              { type: 'text', text: 'Gold: 6%  |  Stocks: 8%  |  Bonds: 3%  |  Derivatives: 2%' },
+              { type: 'text', text: '', height: 10 },
+              { type: 'text', text: 'Cash & Stables (2%)', size: 14, color: [148, 163, 184] },
+              { type: 'text', text: '', height: 15 },
+              { type: 'line' },
+              { type: 'text', text: '', height: 10 },
+              { type: 'text', text: 'Dynamic Rebalancing:', size: 14, color: [99, 102, 241] },
+              { type: 'text', text: 'Bull Markets: 75-85% Crypto  |  Bear Markets: 75-80% TradFi' },
+              { type: 'text', text: 'Allocation shifts automatically based on market regime detection' },
+            ], currentPage, selectedCount);
+          }
+
+          // Save PDF
+          pdf.save('IQ167_Investment_Report.pdf');
+          setProgress(100);
+          
+          setTimeout(() => {
+            setIsExporting(false);
+            onClose();
+          }, 1000);
+          
+        } catch (error) {
+          console.error('PDF Export Error:', error);
+          setIsExporting(false);
+          alert('Error generating PDF. Please try again.');
+        }
+      };
+
+      if (!isOpen) return null;
+
+      return (
+        <div className="pdf-export-overlay">
+          <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 slide-in">
+            {isExporting ? (
+              <div className="text-center">
+                <Icon name="file-text" className="w-16 h-16 text-indigo-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Generating PDF Report</h3>
+                <p className="text-slate-400 mb-6">Please wait while we create your document...</p>
+                <div className="w-full bg-slate-700 rounded-full h-3 mb-2">
+                  <div 
+                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-sm text-slate-400">{progress}% Complete</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                    <Icon name="file-text" className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Export PDF Report</h3>
+                    <p className="text-slate-400 text-sm">Select pages to include</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  {[
+                    { key: 'summary', label: 'Executive Summary', icon: 'layout-dashboard' },
+                    { key: 'performance', label: '10-Year Performance', icon: 'trending-up' },
+                    { key: 'agents', label: 'AI Agent Architecture', icon: 'cpu' },
+                    { key: 'risk', label: 'Risk Management', icon: 'shield' },
+                    { key: 'allocation', label: 'Asset Allocation', icon: 'pie-chart' },
+                  ].map(page => (
+                    <label 
+                      key={page.key}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                        selectedPages[page.key] ? 'bg-indigo-500/20 border border-indigo-500/30' : 'bg-slate-700/50 border border-transparent'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedPages[page.key]}
+                        onChange={(e) => setSelectedPages(prev => ({ ...prev, [page.key]: e.target.checked }))}
+                        className="w-4 h-4 rounded border-slate-500 text-indigo-500 focus:ring-indigo-500"
+                      />
+                      <Icon name={page.icon} className="w-5 h-5 text-slate-400" />
+                      <span className="text-white">{page.label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={onClose}
+                    className="flex-1 px-4 py-3 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleExport}
+                    disabled={!Object.values(selectedPages).some(Boolean)}
+                    className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Icon name="download" className="w-4 h-4" />
+                    Export PDF
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // ========================================================================
+    // GUIDED TOUR COMPONENT
+    // ========================================================================
+    const GuidedTour = ({ isActive, onEnd, currentStep, setCurrentStep }) => {
+      const tourSteps = [
+        {
+          target: 'portfolio-value',
+          title: 'Portfolio Overview',
+          content: 'Track your total portfolio value in real-time. The IQ-167 system has grown $5M to over $253M in our 10-year backtest projection.',
+          position: 'bottom'
+        },
+        {
+          target: 'sharpe-ratio',
+          title: 'Risk-Adjusted Returns',
+          content: 'The Sharpe ratio of 2.34 indicates exceptional risk-adjusted performance. Most hedge funds target 1.0-1.5.',
+          position: 'bottom'
+        },
+        {
+          target: 'regime-indicator',
+          title: 'Market Regime Detection',
+          content: 'Our AI detects market phases in real-time. The system automatically adjusts allocation between crypto and traditional assets based on the detected regime.',
+          position: 'left'
+        },
+        {
+          target: 'price-chart',
+          title: 'Advanced Charting',
+          content: 'Real-time candlestick charts with volume bars show price action across all supported assets. Bollinger Bands help identify volatility and potential reversals.',
+          position: 'right'
+        },
+        {
+          target: 'technical-indicators',
+          title: 'Technical Indicators',
+          content: 'RSI and MACD provide additional signals. The system uses 50+ indicators combined with ML pattern recognition.',
+          position: 'top'
+        },
+        {
+          target: 'agent-flow',
+          title: 'AI Agent Architecture',
+          content: '7 specialized AI agents analyze markets simultaneously. Their signals are aggregated and synthesized by the Master Integration Agent.',
+          position: 'top'
+        },
+        {
+          target: 'allocation-chart',
+          title: 'Dynamic Allocation',
+          content: 'Asset allocation shifts automatically: 75-85% crypto during bull markets, 75-80% TradFi during bears. This generates alpha during downturns.',
+          position: 'left'
+        },
+        {
+          target: 'risk-metrics',
+          title: 'Risk Management',
+          content: 'Real-time VaR, max drawdown, and volatility monitoring. The system reduced max drawdown by 70% compared to crypto-only strategies.',
+          position: 'left'
+        }
+      ];
+
+      const handleNext = () => {
+        if (currentStep < tourSteps.length - 1) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          onEnd();
+        }
+      };
+
+      const handlePrev = () => {
+        if (currentStep > 0) {
+          setCurrentStep(currentStep - 1);
+        }
+      };
+
+      const handleSkip = () => {
+        onEnd();
+      };
+
+      if (!isActive) return null;
+
+      const step = tourSteps[currentStep];
+
+      return (
+        <>
+          {/* Overlay */}
+          <div className="tour-overlay" onClick={handleSkip} />
+          
+          {/* Tooltip */}
+          <div 
+            className="tour-tooltip bg-slate-800 rounded-xl p-6 border border-indigo-500/50 shadow-2xl"
+            style={{
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            {/* Progress */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex gap-1">
+                {tourSteps.map((_, idx) => (
+                  <div 
+                    key={idx}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      idx === currentStep ? 'bg-indigo-500 w-6' : idx < currentStep ? 'bg-indigo-400' : 'bg-slate-600'
+                    }`}
+                  />
+                ))}
+              </div>
+              <button onClick={handleSkip} className="text-slate-400 hover:text-white">
+                <Icon name="x" className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                  <Icon name="lightbulb" className="w-5 h-5 text-indigo-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">{step.title}</h3>
+              </div>
+              <p className="text-slate-300 leading-relaxed">{step.content}</p>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={handlePrev}
+                disabled={currentStep === 0}
+                className="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Icon name="chevron-left" className="w-4 h-4" />
+                Back
+              </button>
+              <span className="text-sm text-slate-400">
+                {currentStep + 1} of {tourSteps.length}
+              </span>
+              <button
+                onClick={handleNext}
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 flex items-center gap-2"
+              >
+                {currentStep === tourSteps.length - 1 ? 'Finish' : 'Next'}
+                <Icon name="chevron-right" className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Visual indicator for current element */}
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[1001]">
+            <div className="w-64 h-64 rounded-full border-4 border-indigo-500/50 spotlight" />
+          </div>
+        </>
+      );
+    };
+
+    // ========================================================================
+    // TECHNICAL INDICATORS CALCULATOR
+    // ========================================================================
+    const calculateIndicators = (candles) => {
+      if (candles.length < 26) return { rsi: [], macd: [], bollingerBands: [] };
+
+      const rsiPeriod = 14;
+      const rsi = [];
+      let gains = 0, losses = 0;
+
+      for (let i = 1; i < candles.length; i++) {
+        const change = candles[i].close - candles[i - 1].close;
+        if (i <= rsiPeriod) {
+          if (change > 0) gains += change;
+          else losses -= change;
+          if (i === rsiPeriod) {
+            const avgGain = gains / rsiPeriod;
+            const avgLoss = losses / rsiPeriod;
+            const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+            rsi.push({ time: candles[i].time, value: 100 - (100 / (1 + rs)), index: i });
+          }
+        } else {
+          const prevRsi = rsi[rsi.length - 1];
+          const avgGain = ((prevRsi ? gains : 0) * (rsiPeriod - 1) + (change > 0 ? change : 0)) / rsiPeriod;
+          const avgLoss = ((prevRsi ? losses : 0) * (rsiPeriod - 1) + (change < 0 ? -change : 0)) / rsiPeriod;
+          gains = avgGain;
+          losses = avgLoss;
+          const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+          rsi.push({ time: candles[i].time, value: 100 - (100 / (1 + rs)), index: i });
+        }
+      }
+
+      const ema12 = calculateEMA(candles.map(c => c.close), 12);
+      const ema26 = calculateEMA(candles.map(c => c.close), 26);
+      const macdLine = ema12.map((v, i) => v - ema26[i]);
+      const signalLine = calculateEMA(macdLine.slice(25), 9);
+      
+      const macd = [];
+      for (let i = 25; i < candles.length; i++) {
+        const signalIdx = i - 25 - 8;
+        if (signalIdx >= 0 && signalIdx < signalLine.length) {
+          macd.push({
+            time: candles[i].time,
+            macd: macdLine[i],
+            signal: signalLine[signalIdx],
+            histogram: macdLine[i] - signalLine[signalIdx],
+            index: i
+          });
+        }
+      }
+
+      const bbPeriod = 20;
+      const bbStdDev = 2;
+      const bollingerBands = [];
+      
+      for (let i = bbPeriod - 1; i < candles.length; i++) {
+        const slice = candles.slice(i - bbPeriod + 1, i + 1).map(c => c.close);
+        const sma = slice.reduce((a, b) => a + b, 0) / bbPeriod;
+        const variance = slice.reduce((sum, val) => sum + Math.pow(val - sma, 2), 0) / bbPeriod;
+        const stdDev = Math.sqrt(variance);
+        
+        bollingerBands.push({
+          time: candles[i].time,
+          middle: sma,
+          upper: sma + bbStdDev * stdDev,
+          lower: sma - bbStdDev * stdDev,
+          close: candles[i].close,
+          index: i
+        });
+      }
+
+      return { rsi, macd, bollingerBands };
+    };
+
+    const calculateEMA = (data, period) => {
+      const multiplier = 2 / (period + 1);
+      const ema = [data.slice(0, period).reduce((a, b) => a + b, 0) / period];
+      for (let i = period; i < data.length; i++) {
+        ema.push((data[i] - ema[ema.length - 1]) * multiplier + ema[ema.length - 1]);
+      }
+      return Array(period - 1).fill(null).concat(ema);
+    };
+
+    // ========================================================================
+    // ADVANCED CANDLESTICK CHART WITH VOLUME & VOLUME PROFILE
+    // ========================================================================
+    const AdvancedChart = ({ data, indicators, showVolume = true, showBollinger = true, showVolumeProfile = false, height = 400 }) => {
+      const candleWidth = 10;
+      const gap = 3;
+      const chartHeight = showVolume ? height * 0.65 : height * 0.85;
+      const volumeHeight = height * 0.15;
+      const volumeProfileWidth = showVolumeProfile ? 60 : 0;
+      const padding = { top: 20, bottom: 20, left: 50, right: 20 + volumeProfileWidth };
+      
+      const prices = data.flatMap(d => [d.high, d.low]);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      const priceRange = maxPrice - minPrice;
+      const pricePadding = priceRange * 0.1;
+      
+      const maxVolume = Math.max(...data.map(d => d.volume));
+      
+      const scaleY = (value) => {
+        return padding.top + ((maxPrice + pricePadding - value) / (priceRange + 2 * pricePadding)) * (chartHeight - padding.top - padding.bottom);
+      };
+
+      // Calculate Volume Profile
+      const volumeProfile = useMemo(() => {
+        if (!showVolumeProfile) return [];
+        const numBins = 20;
+        const binSize = (maxPrice - minPrice + 2 * pricePadding) / numBins;
+        const bins = Array(numBins).fill(0).map((_, i) => ({
+          priceStart: minPrice - pricePadding + i * binSize,
+          priceEnd: minPrice - pricePadding + (i + 1) * binSize,
+          volume: 0,
+          buyVolume: 0,
+          sellVolume: 0
+        }));
+
+        data.forEach(candle => {
+          const midPrice = (candle.high + candle.low) / 2;
+          const binIndex = Math.min(Math.floor((midPrice - (minPrice - pricePadding)) / binSize), numBins - 1);
+          if (binIndex >= 0 && binIndex < numBins) {
+            bins[binIndex].volume += candle.volume;
+            if (candle.close >= candle.open) {
+              bins[binIndex].buyVolume += candle.volume;
+            } else {
+              bins[binIndex].sellVolume += candle.volume;
+            }
+          }
+        });
+
+        const maxBinVolume = Math.max(...bins.map(b => b.volume));
+        return bins.map(bin => ({
+          ...bin,
+          width: (bin.volume / maxBinVolume) * (volumeProfileWidth - 10),
+          buyWidth: (bin.buyVolume / maxBinVolume) * (volumeProfileWidth - 10),
+          sellWidth: (bin.sellVolume / maxBinVolume) * (volumeProfileWidth - 10)
+        }));
+      }, [data, showVolumeProfile, minPrice, maxPrice, pricePadding]);
+
+      const chartWidth = data.length * (candleWidth + gap) + padding.left + padding.right;
+
+      return (
+        <div className="overflow-x-auto" id="price-chart">
+          <svg width={Math.max(chartWidth, 600)} height={height} className="overflow-visible">
+            {/* Price Grid */}
+            {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => {
+              const y = padding.top + (chartHeight - padding.top - padding.bottom) * pct;
+              const price = maxPrice + pricePadding - (priceRange + 2 * pricePadding) * pct;
+              return (
+                <g key={`grid-${i}`}>
+                  <line x1={padding.left} y1={y} x2={chartWidth - volumeProfileWidth - 10} y2={y} stroke="#334155" strokeDasharray="3 3" />
+                  <text x={padding.left - 5} y={y + 4} fill="#64748B" fontSize="10" textAnchor="end">
+                    ${price.toFixed(2)}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Volume Profile */}
+            {showVolumeProfile && volumeProfile.length > 0 && (
+              <g transform={`translate(${chartWidth - volumeProfileWidth - 5}, 0)`}>
+                {volumeProfile.map((bin, i) => {
+                  const y1 = scaleY(bin.priceEnd);
+                  const y2 = scaleY(bin.priceStart);
+                  const barHeight = y2 - y1 - 1;
+                  return (
+                    <g key={`vp-${i}`}>
+                      <rect x={0} y={y1} width={bin.buyWidth} height={barHeight} fill="#22C55E" opacity="0.6" />
+                      <rect x={bin.buyWidth} y={y1} width={bin.sellWidth} height={barHeight} fill="#EF4444" opacity="0.6" />
+                    </g>
+                  );
+                })}
+                <text x={volumeProfileWidth / 2} y={chartHeight + 15} fill="#64748B" fontSize="9" textAnchor="middle">Vol Profile</text>
+              </g>
+            )}
+
+            {/* Bollinger Bands */}
+            {showBollinger && indicators.bollingerBands.length > 0 && (
+              <g transform={`translate(${padding.left}, 0)`}>
+                <path
+                  d={indicators.bollingerBands.map((bb, i) => 
+                    `${i === 0 ? 'M' : 'L'} ${bb.index * (candleWidth + gap) + candleWidth / 2} ${scaleY(bb.upper)}`
+                  ).join(' ')}
+                  fill="none" stroke="#8B5CF6" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"
+                />
+                <path
+                  d={indicators.bollingerBands.map((bb, i) => 
+                    `${i === 0 ? 'M' : 'L'} ${bb.index * (candleWidth + gap) + candleWidth / 2} ${scaleY(bb.middle)}`
+                  ).join(' ')}
+                  fill="none" stroke="#8B5CF6" strokeWidth="1.5" opacity="0.8"
+                />
+                <path
+                  d={indicators.bollingerBands.map((bb, i) => 
+                    `${i === 0 ? 'M' : 'L'} ${bb.index * (candleWidth + gap) + candleWidth / 2} ${scaleY(bb.lower)}`
+                  ).join(' ')}
+                  fill="none" stroke="#8B5CF6" strokeWidth="1" strokeDasharray="4 2" opacity="0.6"
+                />
+                <path
+                  d={
+                    indicators.bollingerBands.map((bb, i) => 
+                      `${i === 0 ? 'M' : 'L'} ${bb.index * (candleWidth + gap) + candleWidth / 2} ${scaleY(bb.upper)}`
+                    ).join(' ') +
+                    indicators.bollingerBands.slice().reverse().map((bb) => 
+                      `L ${bb.index * (candleWidth + gap) + candleWidth / 2} ${scaleY(bb.lower)}`
+                    ).join(' ') + ' Z'
+                  }
+                  fill="#8B5CF6" opacity="0.05"
+                />
+              </g>
+            )}
+
+            {/* Candlesticks */}
+            <g transform={`translate(${padding.left}, 0)`}>
+              {data.map((candle, i) => {
+                const x = i * (candleWidth + gap);
+                const isGreen = candle.close >= candle.open;
+                const bodyTop = scaleY(Math.max(candle.open, candle.close));
+                const bodyBottom = scaleY(Math.min(candle.open, candle.close));
+                const bodyHeight = Math.max(1, bodyBottom - bodyTop);
+                
+                return (
+                  <g key={i}>
+                    <line x1={x + candleWidth / 2} y1={scaleY(candle.high)} x2={x + candleWidth / 2} y2={scaleY(candle.low)} stroke={isGreen ? '#22C55E' : '#EF4444'} strokeWidth="1" />
+                    <rect x={x} y={bodyTop} width={candleWidth} height={bodyHeight} fill={isGreen ? '#22C55E' : '#EF4444'} rx="1" />
+                  </g>
+                );
+              })}
+            </g>
+
+            {/* Volume Bars */}
+            {showVolume && (
+              <g transform={`translate(${padding.left}, 0)`}>
+                <line x1="0" y1={chartHeight} x2={chartWidth - volumeProfileWidth - padding.left - 10} y2={chartHeight} stroke="#334155" />
+                {data.map((candle, i) => {
+                  const x = i * (candleWidth + gap);
+                  const isGreen = candle.close >= candle.open;
+                  const barHeight = (candle.volume / maxVolume) * volumeHeight * 0.9;
+                  
+                  return (
+                    <rect key={`vol-${i}`} x={x} y={chartHeight + volumeHeight - barHeight} width={candleWidth} height={barHeight} fill={isGreen ? '#22C55E' : '#EF4444'} opacity="0.5" rx="1" />
+                  );
+                })}
+                <text x="-5" y={chartHeight + volumeHeight / 2} fill="#64748B" fontSize="10" textAnchor="end" transform={`rotate(-90, -5, ${chartHeight + volumeHeight / 2})`}>Volume</text>
+              </g>
+            )}
+
+            {/* Time Labels */}
+            <g transform={`translate(${padding.left}, ${height - 10})`}>
+              {data.filter((_, i) => i % 5 === 0).map((candle, idx) => (
+                <text key={idx} x={idx * 5 * (candleWidth + gap) + candleWidth / 2} fill="#64748B" fontSize="10" textAnchor="middle">{candle.time}</text>
+              ))}
+            </g>
+          </svg>
+        </div>
+      );
+    };
+
+    // ========================================================================
+    // RSI & MACD CHARTS
+    // ========================================================================
+    const RSIChart = ({ data, height = 100 }) => {
+      if (!data || data.length === 0) return null;
+      return (
+        <div className="bg-slate-900/50 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-slate-400 font-medium">RSI (14)</span>
+            <span className={`text-sm font-bold ${data[data.length-1]?.value > 70 ? 'text-red-400' : data[data.length-1]?.value < 30 ? 'text-green-400' : 'text-slate-300'}`}>
+              {data[data.length-1]?.value.toFixed(1)}
+            </span>
+          </div>
+          <ResponsiveContainer width="100%" height={height}>
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id="rsiGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="time" stroke="#64748B" fontSize={10} hide />
+              <YAxis domain={[0, 100]} stroke="#64748B" fontSize={10} ticks={[30, 50, 70]} />
+              <ReferenceLine y={70} stroke="#EF4444" strokeDasharray="3 3" />
+              <ReferenceLine y={30} stroke="#22C55E" strokeDasharray="3 3" />
+              <ReferenceArea y1={70} y2={100} fill="#EF4444" fillOpacity={0.1} />
+              <ReferenceArea y1={0} y2={30} fill="#22C55E" fillOpacity={0.1} />
+              <Area type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={2} fill="url(#rsiGradient)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    };
+
+    const MACDChart = ({ data, height = 120 }) => {
+      if (!data || data.length === 0) return null;
+      return (
+        <div className="bg-slate-900/50 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-slate-400 font-medium">MACD (12, 26, 9)</span>
+            <div className="flex gap-3 text-xs">
+              <span className="text-blue-400">MACD: {data[data.length-1]?.macd.toFixed(2)}</span>
+              <span className="text-orange-400">Signal: {data[data.length-1]?.signal.toFixed(2)}</span>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={height}>
+            <ComposedChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="time" stroke="#64748B" fontSize={10} hide />
+              <YAxis stroke="#64748B" fontSize={10} />
+              <ReferenceLine y={0} stroke="#64748B" />
+              <Bar dataKey="histogram">
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.histogram >= 0 ? '#22C55E' : '#EF4444'} opacity={0.5} />
+                ))}
+              </Bar>
+              <Line type="monotone" dataKey="macd" stroke="#3B82F6" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="signal" stroke="#F97316" strokeWidth={2} dot={false} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    };
+
+    // ========================================================================
+    // AGENT FLOW DIAGRAM
+    // ========================================================================
+    const AgentFlowDiagram = ({ agents, masterSignal }) => {
+      const getSignalColor = (signal) => signal >= 70 ? '#22C55E' : signal >= 40 ? '#EAB308' : '#EF4444';
+      const getSignalArrow = (signal) => signal >= 60 ? '↑' : signal >= 40 ? '→' : '↓';
+
+      return (
+        <div className="relative w-full h-full min-h-[400px]" id="agent-flow">
+          <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+            <defs>
+              <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#6366F1" stopOpacity="0.2" />
+                <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#6366F1" stopOpacity="0.2" />
+              </linearGradient>
+              <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#6366F1" />
+              </marker>
+            </defs>
+            {[0, 1, 2, 3, 4, 5].map((i) => {
+              const startY = 60 + i * 55;
+              return (
+                <g key={i}>
+                  <path d={`M 180 ${startY} Q 250 ${startY} 280 200`} fill="none" stroke="#6366F1" strokeWidth="2" strokeDasharray="5 3" className="data-flow" opacity="0.5" />
+                  <circle cx="180" cy={startY} r="4" fill="#6366F1" className="flow-pulse" />
+                </g>
+              );
+            })}
+            <path d="M 380 200 L 480 200" fill="none" stroke="url(#flowGradient)" strokeWidth="4" markerEnd="url(#arrowhead)" />
+            <path d="M 620 200 L 720 200" fill="none" stroke="#22C55E" strokeWidth="3" strokeDasharray="8 4" className="data-flow" markerEnd="url(#arrowhead)" />
+          </svg>
+
+          <div className="relative z-10 flex items-center justify-between h-full px-4">
+            <div className="flex flex-col gap-2">
+              {agents.slice(0, 6).map((agent) => (
+                <div key={agent.id} className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/80 border border-slate-700/50 w-40" style={{ borderLeftColor: agent.color, borderLeftWidth: '3px' }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs" style={{ backgroundColor: `${agent.color}25` }}>
+                    <Icon name={agent.icon} className="w-4 h-4" style={{ color: agent.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium truncate">{agent.name}</div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-bold" style={{ color: getSignalColor(agent.signal) }}>{agent.signal > 50 ? '+' : ''}{agent.signal}</span>
+                      <span className="text-lg signal-glow" style={{ color: getSignalColor(agent.signal) }}>{getSignalArrow(agent.signal)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col items-center">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border-2 border-indigo-500/50 flex flex-col items-center justify-center">
+                <Icon name="git-merge" className="w-8 h-8 text-indigo-400 mb-1" />
+                <div className="text-xs text-slate-400">Signal</div>
+                <div className="text-xs text-slate-400">Aggregation</div>
+                <div className="text-lg font-bold text-indigo-400 mt-1">Weighted</div>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <div className="w-36 h-36 rounded-2xl bg-gradient-to-br from-indigo-600/30 to-purple-600/30 border-2 border-indigo-500 flex flex-col items-center justify-center pulse-glow">
+                <Icon name="cpu" className="w-10 h-10 text-indigo-400 mb-2" />
+                <div className="text-sm font-semibold text-white">Master AI</div>
+                <div className="text-2xl font-bold text-green-400 mt-1">+{masterSignal}</div>
+                <div className="text-xs text-slate-400">Consensus</div>
+              </div>
+              <div className="mt-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30">
+                <span className="text-xs text-green-400">88% Confidence</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-3">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/50">
+                <div className="text-center">
+                  <Icon name="zap" className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                  <div className="text-xs text-slate-400">Decision</div>
+                  <div className="text-lg font-bold text-green-400">ACCUMULATE</div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 w-full">
+                <div className="p-2 rounded-lg bg-slate-800/80 border border-slate-700/50 text-center">
+                  <div className="text-xs text-slate-400">Size</div>
+                  <div className="text-sm font-bold text-white">+2.5% NAV</div>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-800/80 border border-slate-700/50 text-center">
+                  <div className="text-xs text-slate-400">Target</div>
+                  <div className="text-sm font-bold text-indigo-400">SOL</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-6 text-xs text-slate-400 py-2">
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-green-500" /><span>Bullish (≥70)</span></div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-yellow-500" /><span>Neutral (40-69)</span></div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-red-500" /><span>Bearish (&lt;40)</span></div>
+          </div>
+        </div>
+      );
+    };
+
+    // ========================================================================
+    // PRESENTATION MODE
+    // ========================================================================
+    const PresentationMode = ({ onExit }) => {
+      const [currentSlide, setCurrentSlide] = useState(0);
+      const [isAutoPlay, setIsAutoPlay] = useState(true);
+
+      const slides = [
+        { id: 'title', render: () => (
+          <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-8 pulse-glow">
+              <Icon name="cpu" className="w-14 h-14 text-white" />
+            </div>
+            <h1 className="text-6xl font-bold gradient-text mb-4 slide-in">IQ-167 System V4.0 SECURE</h1>
+            <p className="text-2xl text-slate-400 mb-8 slide-in">Multi-Asset Algorithmic Trading Platform</p>
+            <div className="flex gap-8 mt-8">
+              <div className="text-center slide-in-left"><div className="text-5xl font-bold text-indigo-400">16+</div><div className="text-slate-400">Asset Classes</div></div>
+              <div className="text-center slide-in"><div className="text-5xl font-bold text-purple-400">7</div><div className="text-slate-400">AI Agents</div></div>
+              <div className="text-center slide-in-right"><div className="text-5xl font-bold text-green-400">50+</div><div className="text-slate-400">Venues</div></div>
+            </div>
+          </div>
+        )},
+        { id: 'performance', render: () => (
+          <div className="h-full flex flex-col items-center justify-center">
+            <h2 className="text-4xl font-bold text-white mb-12 slide-in">10-Year Performance</h2>
+            <div className="grid grid-cols-4 gap-8">
+              {[
+                { label: 'Total Return', value: '+4,967%', sub: '$5M → $253M', color: 'text-green-400' },
+                { label: 'CAGR', value: '48.1%', sub: 'Compound Annual', color: 'text-indigo-400' },
+                { label: 'Sharpe Ratio', value: '2.34', sub: 'vs 0.92 S&P', color: 'text-yellow-400' },
+                { label: 'Win Rate', value: '73.2%', sub: 'Consistent Alpha', color: 'text-purple-400' },
+              ].map((m, i) => (
+                <div key={i} className="text-center p-8 rounded-2xl bg-slate-800/50 border border-slate-700 slide-in">
+                  <div className={`text-6xl font-bold ${m.color} count-up`}>{m.value}</div>
+                  <div className="text-xl text-slate-400 mt-2">{m.label}</div>
+                  <div className="text-sm text-slate-500 mt-1">{m.sub}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )},
+        { id: 'risk', render: () => (
+          <div className="h-full flex flex-col items-center justify-center">
+            <h2 className="text-4xl font-bold text-white mb-12 slide-in">Risk Management Edge</h2>
+            <div className="grid grid-cols-3 gap-12 max-w-5xl">
+              {[
+                { label: 'IQ-167 Max Drawdown', value: '-18.7%', color: 'green', width: 18.7 },
+                { label: 'Crypto-Only Drawdown', value: '-62.4%', color: 'orange', width: 62.4 },
+                { label: 'BTC Buy & Hold', value: '-77.2%', color: 'red', width: 77.2 },
+              ].map((m, i) => (
+                <div key={i} className={`text-center slide-in${i === 0 ? '-left' : i === 2 ? '-right' : ''}`}>
+                  <div className="text-xl text-slate-400 mb-4">{m.label}</div>
+                  <div className={`text-7xl font-bold text-${m.color}-400`}>{m.value}</div>
+                  <div className="h-4 bg-slate-700 rounded-full mt-4 overflow-hidden">
+                    <div className={`h-full bg-${m.color}-500 rounded-full progress-fill`} style={{ width: `${m.width}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 max-w-2xl text-center">
+              <div className="text-2xl font-bold text-green-400">70% Reduction in Worst-Case Loss</div>
+              <div className="text-slate-400 mt-2">Multi-asset diversification protects capital during crypto bear markets</div>
+            </div>
+          </div>
+        )},
+        { id: 'bear', render: () => (
+          <div className="h-full flex flex-col items-center justify-center">
+            <h2 className="text-4xl font-bold text-white mb-8 slide-in">Bear Market Alpha Generation</h2>
+            <p className="text-xl text-slate-400 mb-12 slide-in">When crypto crashes, IQ-167 thrives</p>
+            <div className="grid grid-cols-2 gap-16 max-w-4xl">
+              {['2028', '2032'].map((year, idx) => (
+                <div key={year} className={`p-8 rounded-2xl bg-slate-800/50 border border-slate-700 slide-in${idx === 0 ? '-left' : '-right'}`}>
+                  <div className="text-center mb-6"><div className="text-2xl font-bold text-red-400">{year} Bear Market</div></div>
+                  <div className="space-y-4">
+                    {[
+                      { label: 'IQ-167', value: year === '2028' ? '+9.7%' : '+11.9%', color: 'text-green-400', size: 'text-3xl' },
+                      { label: 'Crypto-Only', value: year === '2028' ? '+1.3%' : '+0.2%', color: 'text-yellow-400', size: 'text-2xl' },
+                      { label: 'BTC', value: year === '2028' ? '-48.2%' : '-52.1%', color: 'text-red-400', size: 'text-2xl' },
+                    ].map(r => (
+                      <div key={r.label} className="flex justify-between items-center">
+                        <span className="text-slate-400">{r.label}</span>
+                        <span className={`${r.size} font-bold ${r.color}`}>{r.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )},
+        { id: 'contact', render: () => (
+          <div className="h-full flex flex-col items-center justify-center">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-8 pulse-glow">
+              <Icon name="cpu" className="w-12 h-12 text-white" />
+            </div>
+            <h2 className="text-5xl font-bold gradient-text mb-4 slide-in">Thank You</h2>
+            <p className="text-2xl text-slate-400 mb-12 slide-in">Let's discuss your investment</p>
+            <div className="p-8 rounded-2xl bg-slate-800/50 border border-slate-700 text-center max-w-lg slide-in">
+              <div className="text-2xl font-bold text-white mb-4">Maxam Capital Management LLC</div>
+              <div className="space-y-2 text-slate-400">
+                <div>Minimum Investment: $100,000</div>
+                <div>Accredited Investors Only</div>
+              </div>
+            </div>
+            <div className="mt-8 text-sm text-slate-500">© 2024 Maxam Capital Management LLC | CONFIDENTIAL</div>
+          </div>
+        )}
+      ];
+
+      useEffect(() => {
+        if (!isAutoPlay) return;
+        const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % slides.length), 8000);
+        return () => clearInterval(timer);
+      }, [isAutoPlay, slides.length]);
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'ArrowRight' || e.key === ' ') setCurrentSlide((prev) => (prev + 1) % slides.length);
+          else if (e.key === 'ArrowLeft') setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+          else if (e.key === 'Escape') onExit();
+          else if (e.key === 'p') setIsAutoPlay((prev) => !prev);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [slides.length, onExit]);
+
+      return (
+        <div className="presentation-mode">
+          <div className="h-screen p-8">{slides[currentSlide].render()}</div>
+          <div className="fixed top-4 right-4 flex items-center gap-4 z-[101]">
+            <button onClick={() => setIsAutoPlay(!isAutoPlay)} className={`p-2 rounded-lg ${isAutoPlay ? 'bg-green-500/20 text-green-400' : 'bg-slate-700 text-slate-400'}`}>
+              <Icon name={isAutoPlay ? 'pause' : 'play'} className="w-5 h-5" />
+            </button>
+            <button onClick={onExit} className="p-2 rounded-lg bg-slate-700 text-slate-400 hover:bg-slate-600">
+              <Icon name="x" className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 flex items-center gap-4 z-[101]">
+            <button onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)} className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700">
+              <Icon name="chevron-left" className="w-5 h-5" />
+            </button>
+            <div className="flex gap-2">
+              {slides.map((_, idx) => (
+                <button key={idx} onClick={() => setCurrentSlide(idx)} className={`w-3 h-3 rounded-full transition-all ${idx === currentSlide ? 'bg-indigo-500 w-6' : 'bg-slate-600'}`} />
+              ))}
+            </div>
+            <button onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)} className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700">
+              <Icon name="chevron-right" className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="fixed bottom-4 left-4 text-xs text-slate-500 z-[101]">← → Navigate | Space: Next | P: Pause | Esc: Exit</div>
+        </div>
+      );
+    };
+
+    // ========================================================================
+    // MAIN DASHBOARD
+    // ========================================================================
+    const IQ167Dashboard = () => {
+      const [currentTime, setCurrentTime] = useState(new Date());
+      const [portfolioValue, setPortfolioValue] = useState(253360000);
+      const [todayPnL, setTodayPnL] = useState(1240000);
+      const [isLive, setIsLive] = useState(true);
+      const [activeTab, setActiveTab] = useState('overview');
+      const [selectedAsset, setSelectedAsset] = useState('SOL');
+      const [candleData, setCandleData] = useState([]);
+      const [indicators, setIndicators] = useState({ rsi: [], macd: [], bollingerBands: [] });
+      const [showPresentation, setShowPresentation] = useState(false);
+      const [showPDFModal, setShowPDFModal] = useState(false);
+      const [showTour, setShowTour] = useState(false);
+      const [tourStep, setTourStep] = useState(0);
+      const [showVolumeProfile, setShowVolumeProfile] = useState(false);
+
+      const generateCandleData = useCallback((basePrice, numCandles = 50) => {
+        const candles = [];
+        let price = basePrice * 0.85;
+        for (let i = 0; i < numCandles; i++) {
+          const volatility = 0.02;
+          const trend = 0.003;
+          const open = price;
+          const change = (Math.random() - 0.45) * volatility * price;
+          const close = open + change + (trend * price);
+          const high = Math.max(open, close) + Math.random() * volatility * price * 0.5;
+          const low = Math.min(open, close) - Math.random() * volatility * price * 0.5;
+          candles.push({
+            time: `${9 + Math.floor(i / 4)}:${String((i % 4) * 15).padStart(2, '0')}`,
+            open, high, low, close,
+            volume: Math.random() * 1000000 + 500000
+          });
+          price = close;
+        }
+        return candles;
+      }, []);
+
+      const assetPrices = useMemo(() => ({
+        SOL: { price: 185.42, change: 4.23 },
+        BTC: { price: 97842, change: 1.87 },
+        ETH: { price: 3421, change: 2.94 },
+        GLD: { price: 2048.50, change: 0.42 },
+        SPY: { price: 598.23, change: 0.31 },
+        TLT: { price: 92.35, change: -0.18 },
+      }), []);
+
+      useEffect(() => {
+        const price = assetPrices[selectedAsset]?.price || 185;
+        const newCandleData = generateCandleData(price, 50);
+        setCandleData(newCandleData);
+        setIndicators(calculateIndicators(newCandleData));
+      }, [selectedAsset, assetPrices, generateCandleData]);
+
+      useEffect(() => {
+        if (!isLive) return;
+        const timer = setInterval(() => {
+          setCurrentTime(new Date());
+          setPortfolioValue(prev => prev + (Math.random() - 0.48) * 100000);
+          setTodayPnL(prev => Math.max(0, prev + (Math.random() - 0.45) * 15000));
+          setCandleData(prev => {
+            if (prev.length === 0) return prev;
+            const updated = [...prev];
+            const last = { ...updated[updated.length - 1] };
+            const change = (Math.random() - 0.5) * 0.005 * last.close;
+            last.close += change;
+            last.high = Math.max(last.high, last.close);
+            last.low = Math.min(last.low, last.close);
+            last.volume += Math.random() * 10000;
+            updated[updated.length - 1] = last;
+            setIndicators(calculateIndicators(updated));
+            return updated;
+          });
+        }, 1500);
+        return () => clearInterval(timer);
+      }, [isLive]);
+
+      const agents = [
+        { id: 'sentiment', name: 'Sentiment', icon: 'brain', signal: 72, confidence: 89, color: '#8B5CF6' },
+        { id: 'fundamental', name: 'Fundamental', icon: 'database', signal: 58, confidence: 82, color: '#06B6D4' },
+        { id: 'technical', name: 'Technical', icon: 'bar-chart-3', signal: 81, confidence: 91, color: '#10B981' },
+        { id: 'liquidity', name: 'Liquidity', icon: 'activity', signal: 65, confidence: 87, color: '#F59E0B' },
+        { id: 'portfolio', name: 'Portfolio', icon: 'pie-chart', signal: 70, confidence: 85, color: '#EC4899' },
+        { id: 'risk', name: 'Risk', icon: 'shield', signal: 45, confidence: 94, color: '#EF4444' },
+        { id: 'master', name: 'Master AI', icon: 'cpu', signal: 68, confidence: 88, color: '#6366F1' },
+      ];
+
+      const assetAllocation = [
+        { name: 'SOL', value: 38, color: '#9945FF' },
+        { name: 'BTC', value: 14, color: '#F7931A' },
+        { name: 'ETH', value: 11, color: '#627EEA' },
+        { name: 'Other', value: 16, color: '#00D4AA' },
+        { name: 'Gold', value: 6, color: '#FFD700' },
+        { name: 'Stocks', value: 8, color: '#4CAF50' },
+        { name: 'Bonds', value: 3, color: '#2196F3' },
+        { name: 'Deriv', value: 2, color: '#FF5722' },
+        { name: 'Cash', value: 2, color: '#9E9E9E' },
+      ];
+
+      const formatCurrency = (v) => {
+        if (v >= 1e9) return `$${(v/1e9).toFixed(2)}B`;
+        if (v >= 1e6) return `$${(v/1e6).toFixed(2)}M`;
+        if (v >= 1e3) return `$${(v/1e3).toFixed(1)}K`;
+        return `$${v.toFixed(0)}`;
+      };
+
+      const getSignalColor = (s) => s >= 70 ? 'text-green-400' : s >= 40 ? 'text-yellow-400' : 'text-red-400';
+
+      if (showPresentation) return <PresentationMode onExit={() => setShowPresentation(false)} />;
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white" id="dashboard-root">
+          <GuidedTour isActive={showTour} onEnd={() => setShowTour(false)} currentStep={tourStep} setCurrentStep={setTourStep} />
+          <PDFExportModal isOpen={showPDFModal} onClose={() => setShowPDFModal(false)} />
+          
+          <div className="p-4 md:p-6">
+            {/* Header */}
+            <header className="mb-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center pulse-glow">
+                    <Icon name="cpu" className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-bold gradient-text">IQ-167 System V4.0 SECURE</h1>
+                    <p className="text-slate-400 text-sm">Multi-Asset Algorithmic Trading Platform</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <button onClick={() => setShowTour(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm transition-all">
+                    <Icon name="play-circle" className="w-4 h-4" />
+                    <span>Tour</span>
+                  </button>
+                  <button onClick={() => setShowPDFModal(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm transition-all">
+                    <Icon name="file-text" className="w-4 h-4" />
+                    <span>PDF</span>
+                  </button>
+                  <button onClick={() => setShowPresentation(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-all">
+                    <Icon name="presentation" className="w-4 h-4" />
+                    <span>Present</span>
+                  </button>
+                  <button onClick={() => setIsLive(!isLive)} className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isLive ? 'bg-green-500/20 border-green-500/30' : 'bg-slate-700/50 border-slate-600'}`}>
+                    <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-400 animate-pulse' : 'bg-slate-500'}`} />
+                    <span className={`text-sm font-medium ${isLive ? 'text-green-400' : 'text-slate-400'}`}>{isLive ? 'LIVE' : 'PAUSED'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+                {['overview', 'charts', 'agents', 'risk'].map((tab) => (
+                  <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${activeTab === tab ? 'bg-indigo-600 text-white' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'}`}>
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </header>
+
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <div id="portfolio-value" className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center justify-between"><span className="text-slate-400 text-sm">Portfolio</span><Icon name="wallet" className="w-4 h-4 text-indigo-400" /></div>
+                <div className="text-xl md:text-2xl font-bold mt-1">{formatCurrency(portfolioValue)}</div>
+                <div className="text-green-400 text-sm mt-1">+4,967% (10Y)</div>
+              </div>
+              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center justify-between"><span className="text-slate-400 text-sm">Today P&L</span><Icon name="trending-up" className="w-4 h-4 text-green-400" /></div>
+                <div className="text-xl md:text-2xl font-bold mt-1 text-green-400">+{formatCurrency(todayPnL)}</div>
+                <div className="text-green-400 text-sm mt-1">+{((todayPnL / portfolioValue) * 100).toFixed(2)}%</div>
+              </div>
+              <div id="sharpe-ratio" className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center justify-between"><span className="text-slate-400 text-sm">Sharpe</span><Icon name="target" className="w-4 h-4 text-yellow-400" /></div>
+                <div className="text-xl md:text-2xl font-bold mt-1">2.34</div>
+                <div className="text-slate-400 text-sm mt-1">Risk-adjusted</div>
+              </div>
+              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center justify-between"><span className="text-slate-400 text-sm">Win Rate</span><Icon name="check-circle" className="w-4 h-4 text-green-400" /></div>
+                <div className="text-xl md:text-2xl font-bold mt-1">73.2%</div>
+                <div className="text-slate-400 text-sm mt-1">30-day avg</div>
+              </div>
+              <div id="regime-indicator" className="bg-gradient-to-br from-green-500/20 to-emerald-500/10 rounded-xl p-4 border border-green-500/30">
+                <div className="flex items-center justify-between"><span className="text-slate-400 text-sm">Regime</span><Icon name="activity" className="w-4 h-4 text-green-400" /></div>
+                <div className="text-xl md:text-2xl font-bold mt-1 text-green-400">BULL</div>
+                <div className="text-green-400/70 text-sm mt-1">78% confidence</div>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            {activeTab === 'overview' && (
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="xl:col-span-2 space-y-6">
+                  <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <h2 className="text-lg font-semibold">Price Chart</h2>
+                        <div className="flex gap-2">
+                          {Object.keys(assetPrices).map((asset) => (
+                            <button key={asset} onClick={() => setSelectedAsset(asset)} className={`px-3 py-1 rounded-lg text-sm font-medium ${selectedAsset === asset ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-400'}`}>{asset}</button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                          <input type="checkbox" checked={showVolumeProfile} onChange={(e) => setShowVolumeProfile(e.target.checked)} className="w-4 h-4 rounded" />
+                          Vol Profile
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold">${assetPrices[selectedAsset]?.price.toLocaleString()}</span>
+                          <span className={`text-sm px-2 py-0.5 rounded ${assetPrices[selectedAsset]?.change >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                            {assetPrices[selectedAsset]?.change >= 0 ? '+' : ''}{assetPrices[selectedAsset]?.change}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <AdvancedChart data={candleData} indicators={indicators} showVolume={true} showBollinger={true} showVolumeProfile={showVolumeProfile} height={350} />
+                  </div>
+
+                  <div id="technical-indicators" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <RSIChart data={indicators.rsi} height={100} />
+                    <MACDChart data={indicators.macd} height={120} />
+                  </div>
+
+                  <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <h2 className="text-lg font-semibold mb-4">Agent Decision Flow</h2>
+                    <div className="h-[400px]">
+                      <AgentFlowDiagram agents={agents} masterSignal={68} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div id="allocation-chart" className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <h2 className="text-lg font-semibold mb-4">Allocation</h2>
+                    <ResponsiveContainer width="100%" height={160}>
+                      <PieChart>
+                        <Pie data={assetAllocation} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={2} dataKey="value">
+                          {assetAllocation.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                        </Pie>
+                        <Tooltip contentStyle={{ backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '8px' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="grid grid-cols-3 gap-1 mt-2">
+                      {assetAllocation.map((asset) => (
+                        <div key={asset.name} className="flex items-center gap-1 text-xs">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: asset.color }} />
+                          <span className="text-slate-400 truncate">{asset.name}</span>
+                          <span className="font-medium ml-auto">{asset.value}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <h2 className="text-lg font-semibold mb-4">AI Agents</h2>
+                    <div className="space-y-2">
+                      {agents.map((agent) => (
+                        <div key={agent.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${agent.color}25` }}>
+                              <Icon name={agent.icon} className="w-4 h-4" style={{ color: agent.color }} />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium">{agent.name}</div>
+                              <div className="text-xs text-slate-500">{agent.confidence}% conf.</div>
+                            </div>
+                          </div>
+                          <div className={`text-lg font-bold ${getSignalColor(agent.signal)}`}>{agent.signal > 50 ? '+' : ''}{agent.signal}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div id="risk-metrics" className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <h2 className="text-lg font-semibold mb-4">Risk</h2>
+                    <div className="space-y-3">
+                      {[{ label: 'VaR (95%)', value: 4.2, max: 10 }, { label: 'Max DD', value: 18.7, max: 50 }, { label: 'Volatility', value: 24.3, max: 50 }].map((m) => (
+                        <div key={m.label}>
+                          <div className="flex justify-between text-sm mb-1"><span className="text-slate-400">{m.label}</span><span className="font-medium">{m.value}%</span></div>
+                          <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full" style={{ width: `${(m.value / m.max) * 100}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'charts' && (
+              <div className="space-y-6">
+                <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <h2 className="text-lg font-semibold">Advanced Chart</h2>
+                      <div className="flex gap-2">
+                        {Object.keys(assetPrices).map((asset) => (
+                          <button key={asset} onClick={() => setSelectedAsset(asset)} className={`px-3 py-1 rounded-lg text-sm font-medium ${selectedAsset === asset ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-400'}`}>{asset}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                        <input type="checkbox" checked={showVolumeProfile} onChange={(e) => setShowVolumeProfile(e.target.checked)} className="w-4 h-4 rounded" />
+                        Volume Profile
+                      </label>
+                      <span className="text-3xl font-bold">${assetPrices[selectedAsset]?.price.toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <AdvancedChart data={candleData} indicators={indicators} showVolume={true} showBollinger={true} showVolumeProfile={showVolumeProfile} height={450} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <RSIChart data={indicators.rsi} height={150} />
+                    <div className="mt-4 text-xs text-slate-400">
+                      <p><span className="text-green-400">Below 30:</span> Oversold - Potential buy signal</p>
+                      <p><span className="text-red-400">Above 70:</span> Overbought - Potential sell signal</p>
+                    </div>
+                  </div>
+                  <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <MACDChart data={indicators.macd} height={150} />
+                    <div className="mt-4 text-xs text-slate-400">
+                      <p><span className="text-blue-400">MACD</span> crosses above <span className="text-orange-400">Signal</span>: Bullish</p>
+                      <p><span className="text-blue-400">MACD</span> crosses below <span className="text-orange-400">Signal</span>: Bearish</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'agents' && (
+              <div className="space-y-6">
+                <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                  <h2 className="text-lg font-semibold mb-4">Agent Signal Flow</h2>
+                  <div className="h-[450px]"><AgentFlowDiagram agents={agents} masterSignal={68} /></div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                  {agents.map((agent) => (
+                    <div key={agent.id} className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50" style={{ borderTopColor: agent.color, borderTopWidth: '3px' }}>
+                      <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ backgroundColor: `${agent.color}25` }}>
+                        <Icon name={agent.icon} className="w-6 h-6" style={{ color: agent.color }} />
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-sm">{agent.name}</div>
+                        <div className={`text-2xl font-bold ${getSignalColor(agent.signal)}`}>{agent.signal > 50 ? '+' : ''}{agent.signal}</div>
+                        <div className="text-xs text-slate-400">{agent.confidence}% conf.</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'risk' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <h2 className="text-lg font-semibold mb-4">Risk Metrics</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[{ label: 'VaR (95%)', value: '4.2%', max: 10, current: 4.2 }, { label: 'CVaR (95%)', value: '6.1%', max: 15, current: 6.1 }, { label: 'Max Drawdown', value: '-18.7%', max: 50, current: 18.7 }, { label: 'Volatility', value: '24.3%', max: 50, current: 24.3 }].map(m => (
+                        <div key={m.label} className="p-4 rounded-lg bg-slate-900/50">
+                          <div className="text-sm text-slate-400 mb-1">{m.label}</div>
+                          <div className="text-2xl font-bold">{m.value}</div>
+                          <div className="h-2 bg-slate-700 rounded-full mt-2">
+                            <div className="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full" style={{ width: `${(m.current / m.max) * 100}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <h2 className="text-lg font-semibold mb-4">Risk-Adjusted Ratios</h2>
+                    <div className="grid grid-cols-3 gap-4">
+                      {[{ label: 'Sharpe', value: '2.34' }, { label: 'Sortino', value: '3.12' }, { label: 'Calmar', value: '2.57' }].map(r => (
+                        <div key={r.label} className="text-center p-4 rounded-lg bg-slate-900/50">
+                          <div className="text-sm text-slate-400">{r.label}</div>
+                          <div className="text-2xl font-bold text-indigo-400">{r.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                    <h2 className="text-lg font-semibold mb-4">Position Limits</h2>
+                    <div className="space-y-4">
+                      {[{ label: 'Max Single Asset', current: 15, limit: 20 }, { label: 'Crypto Allocation', current: 79, limit: 85 }, { label: 'Gross Leverage', current: 1.2, limit: 3.0 }].map(p => (
+                        <div key={p.label}>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-slate-400">{p.label}</span>
+                            <span className="font-medium">{typeof p.current === 'number' && p.current < 10 ? p.current.toFixed(1) : p.current}{p.label.includes('Leverage') ? 'x' : '%'} / {p.limit}{p.label.includes('Leverage') ? 'x' : '%'}</span>
+                          </div>
+                          <div className="h-2 bg-slate-700 rounded-full">
+                            <div className={`h-full rounded-full ${(p.current / p.limit) > 0.8 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${(p.current / p.limit) * 100}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 rounded-xl p-6 border border-green-500/30">
+                    <h2 className="text-lg font-semibold mb-4 text-green-400">Bear Market Protection</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <div className="text-sm text-slate-400">2028 Return</div>
+                        <div className="text-2xl font-bold text-green-400">+9.7%</div>
+                        <div className="text-xs text-slate-500">vs BTC -48.2%</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm text-slate-400">2032 Return</div>
+                        <div className="text-2xl font-bold text-green-400">+11.9%</div>
+                        <div className="text-xs text-slate-500">vs BTC -52.1%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <footer className="mt-6 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" /><span className="text-slate-400">All Systems Operational</span></div>
+                  <div className="flex items-center gap-2"><Icon name="lock" className="w-4 h-4 text-green-400" /><span className="text-slate-400">SOC 2 Type II</span></div>
+                </div>
+                <div className="text-sm text-slate-500">© 2024 Maxam Capital Management LLC</div>
+              </div>
+            </footer>
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<IQ167Dashboard />);
+  </script>
+</body>
+</html>
