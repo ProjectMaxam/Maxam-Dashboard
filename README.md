@@ -1,2 +1,0 @@
-# Maxam-Dashboard
-Maxam Dashboard
